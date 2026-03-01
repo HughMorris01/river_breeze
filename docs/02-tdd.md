@@ -1,0 +1,120 @@
+**Technical Design Document (TDD)**
+
+**Project Name: River Breeze Scheduling & Lead Gen Platform**
+
+**Developer: Gregorio**
+
+**Date: 2026-03-01**
+
+**1. Architecture & Tech Stack**
+
+* **Frontend:** React.js (Vite configuration), Tailwind CSS
+* **State Management:** Zustand (Global Auth), React `useState`/`useMemo` (Local/Form State)
+* **Backend:** Node.js, Express.js
+* **Database:** MongoDB (Mongoose ODM)
+* **Version Control:** Git / GitHub
+* **Development Environment:** VS Code
+
+**2. Database Schema (MongoDB)**
+
+**Model: Client**
+* `_id`: ObjectId
+* `name`: String (Required)
+* `email`: String (Required)
+* `phone`: String (Required)
+* `address`: String (Required)
+* `bedrooms`: Number (Default: 1)
+* `bathrooms`: Number (Default: 1)
+* `squareFootage`: Number (Default: 1000)
+* `additionalRooms`: Number (Default: 0)
+* `pets`: Number (Default: 0)
+* `isActive`: Boolean (Default: true) - *Used for soft-deleting/archiving clients.*
+
+**Model: Appointment**
+* `_id`: ObjectId
+* `client`: ObjectId (Ref: 'Client')
+* `serviceType`: String (Required)
+* `addOns`: Array of Strings
+* `quotedPrice`: Number (Required)
+* `status`: Enum ['Pending', 'Confirmed', 'Completed', 'Canceled'] (Default: 'Pending')
+* `date`: Date (Required)
+* `startTime`: String (Required, Format: "HH:MM")
+* `endTime`: String (Required, Format: "HH:MM")
+* `estimatedHours`: Number (Required)
+* `clientNotes`: String (Optional, Max 200 chars)
+* `adminNotes`: String (Optional)
+
+**Model: Shift**
+* `_id`: ObjectId
+* `date`: Date (Required)
+* `startTime`: String (Required)
+* `endTime`: String (Required)
+
+**3. API Endpoints (Express.js)**
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/api/clients` | Creates a new client profile | No |
+| **POST** | `/api/clients/verify` | Verifies a returning client via address + phone/email | No |
+| **PUT** | `/api/clients/:id/archive` | Soft-deletes a client & cancels active appointments | Yes (Admin) |
+| **POST** | `/api/appointments` | Creates appointment (includes Real-Time Security Check) | No |
+| **GET** | `/api/appointments` | Fetches all appointments & populates Client data | Yes (Admin) |
+| **PUT** | `/api/appointments/:id/:action` | Updates status (confirm, cancel, complete) | Yes (Admin) |
+| **GET** | `/api/availability` | Public Smart Anchor Engine calculation for open slots | No |
+| **GET** | `/api/availability/shifts` | Fetches raw shifts for Admin Dashboard (flags overlaps) | Yes (Admin) |
+| **POST** | `/api/availability` | Adds a new working shift block | Yes (Admin) |
+| **DELETE**| `/api/availability/:id` | Deletes a shift (if no active appointments exist) | Yes (Admin) |
+
+**4. Backend Controllers & Logic**
+
+**File: availabilityController.js (The Smart Anchor Engine)**
+* `getAvailability`: Calculates available time slots by taking user duration, adding a mandatory 30-minute travel buffer, and scanning shifts for overlaps. Enforces a strict boundary rule (0 min gap or >= 60 min gap).
+* `getShifts`, `addShift`, `deleteShift`: Standard CRUD operations with a security check preventing deletion of shifts that contain active appointments.
+
+**File: appointmentController.js**
+* `createAppointment`: Includes a Real-Time Security Check to ensure the shift hasn't been deleted and no double-booking occurred while the user was on the checkout screen.
+* `completeAppointment`: Accepts `adminNotes` from the dashboard modal and saves them to the document while updating the status.
+
+**5. Frontend Architecture (React)**
+
+**5.1. Page Routes**
+| Route Path | Page Component | Description | Protected? |
+| :--- | :--- | :--- | :--- |
+| `/quote` | `QuoteCalculator` | Dynamic pricing engine | No |
+| `/book` | `NewClientBooking` | Secure checkout and calendar selection | No |
+| `/returning` | `ReturningClientConfirm` | Identity verification | No |
+| `/returning/confirm` | `ReturningClientBooking` | 2-click rebook with populated data | No |
+| `/admin` | `AdminDashboard` | Shift, Roster, and Appointment management | Yes |
+
+**5.2. Component Breakdown**
+ Global & Layout Components
+* `Hero`: A high-impact entry point of the application designed to drive conversions; providing global routing to the Quote Calculator, Returning Client portal
+* `Header`: A responsive navigation interface providing link to the landing page and secure Admin entry point.
+* `Footer`: A standardized site-wide component containing essential navigation links, brand contact information, and geographic service area markers.
+* `Testimonials`: A dynamic social proof section highlighting client success stories to build trust with new leads in the local domestic detailing market
+Specialized Business Logic Components
+* `AvailabilityManager`: A sophisticated administrative interface allowing the owner to manage operational shifts with built-in validation to prevent scheduling in the past.
+* `BookingCalendar`: A complex client-facing interface that consumes and renders validated, gap-protected time slots generated by the backend Smart Anchor Engine.
+* `MagicReveal`: A premium UX component utilizing CSS clip-path animations to provide a visually engaging transition between identity verification and the personalized rebooking flow.
+
+**5.4. Styling Guidelines (Tailwind CSS)**
+* **Primary Colors:** Teal (`bg-teal-600`, `text-teal-700`) for primary actions.
+* **Secondary Colors:** Slate (`bg-slate-800`, `text-slate-500`) for layout/typography.
+* **Alert/Status Colors:** Amber (Pending), Blue (Confirmed), Indigo (Complete), Red (Canceled/Delete).
+* **Design Pattern:** Apple-style glassmorphism, heavy shadows (`shadow-2xl`), and rounded corners (`rounded-2xl`).
+
+**5.3. State Management Strategy**
+
+* **Global State (Zustand):** Utilized a lightweight Zustand store (`useAuthStore`) to manage the admin's JWT authentication token across the application. This ensures protected routes (like the Admin Dashboard) remain secure without the heavy boilerplate of Redux.
+* **Server State (React Hooks + Fetch API):** Used native `useEffect` hooks combined with the standard Fetch API to pull dynamic data (appointments, shifts, client profiles) from the Node.js backend. Implemented Optimistic UI updates to instantly remove deleted/archived items from the screen while the database updates in the background.
+* **Local/UI State (useState, useMemo):** Heavily relied on `useState` to manage complex, multi-step form data during the checkout and quoting flows. Leveraged `useMemo` for heavy frontend calculations, specifically within the `AvailabilityManager` to dynamically filter out past dates and overlap conflicts without causing unnecessary re-renders.
+
+**6. Third-Party APIs & Integrations**
+
+* **Google Maps API (Places Autocomplete)**
+  * **Purpose:** Address autocomplete and validation on frontend forms to ensure clean DB entries.
+  * **Implementation:** `react-google-autocomplete` bounded to a geographic box around Clayton, NY. Validates that a specific house number is selected.
+  * **Environment Variables:** `VITE_GOOGLE_MAPS_API_KEY` (Frontend `.env`).
+  * **Constraints:** Restricted to specific production URLs via Google Cloud Console.
+* **Stripe API (Planned Integration)**
+  * **Purpose:** Securely process $20 non-refundable deposits for New Clients.
