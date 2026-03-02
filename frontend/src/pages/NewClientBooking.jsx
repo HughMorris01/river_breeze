@@ -113,7 +113,20 @@ export default function NewClientBooking() {
       if (!apptRes.ok) throw new Error("Failed to secure appointment slot.");
 
       toast.success("Booking Confirmed! Check your email for details.", { id: 'booking', duration: 6000 });
-      navigate('/'); 
+      navigate('/confirmation', { 
+        state: { 
+          bookingDetails: {
+            clientName: `${firstName} ${lastName}`,
+            address: address,
+            serviceType: quoteDetails.serviceType,
+            date: selectedSlot.date,
+            startTime: selectedSlot.startTime,
+            endTime: selectedSlot.endTime,
+            price: quoteDetails.quote.price,
+            isNewClient: true
+          }
+        } 
+      }); 
 
     } catch (err) {
       toast.error(err.message || "An error occurred during booking.", { id: 'booking' });

@@ -143,7 +143,20 @@ export default function ReturningClientBooking() {
 
       if (res.ok) {
         toast.success("Your slot has been reserved!", { duration: 6000 });
-        navigate('/'); 
+        navigate('/confirmation', {
+          state: {
+            bookingDetails: {
+              clientName: clientData.name,
+              address: clientData.address,
+              serviceType: serviceType,
+              date: selectedSlot.date,
+              startTime: selectedSlot.startTime,
+              endTime: selectedSlot.endTime,
+              price: dynamicQuote.price,
+              isNewClient: false
+            }
+          }
+        });
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to book appointment.");

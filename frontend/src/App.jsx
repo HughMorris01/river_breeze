@@ -8,6 +8,7 @@ import QuoteCalculator from './pages/QuoteCalculator';
 import NewClientBooking from './pages/NewClientBooking';
 import ReturningClientConfirm from './pages/ReturningClientConfirm';
 import ReturningClientBooking from './pages/ReturningClientBooking';
+import BookingConfirmation from './pages/BookingConfirmation';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/booking" element={<NewClientBooking />} />
           <Route path="/returning" element={<ReturningClientConfirm />} />
           <Route path="/returning/confirm" element={<ReturningClientBooking />} />
+          <Route path="/confirmation" element={<BookingConfirmation />} />
           
           <Route path="/login" element={
             token ? <Navigate to="/admin" /> : <LoginPage />
