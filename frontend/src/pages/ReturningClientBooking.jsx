@@ -46,8 +46,9 @@ export default function ReturningClientBooking() {
     if (!isEditing && lastJob) {
       setDynamicQuote({ price: lastJob.quotedPrice, time: lastJob.estimatedHours });
       setServiceType(lastJob.serviceType);
-      setSelectedAddOns([]);
-      setShowAddOns(false);
+      
+      if (selectedAddOns.length > 0) setSelectedAddOns([]);
+      if (showAddOns) setShowAddOns(false);
       return;
     }
 
@@ -97,7 +98,7 @@ export default function ReturningClientBooking() {
     const snappedTime = Math.round(time * 4) / 4;
     setDynamicQuote({ price, time: snappedTime });
 
-  }, [isEditing, lastJob, serviceType, selectedAddOns, clientData]);
+  }, [isEditing, lastJob, serviceType, selectedAddOns, clientData, showAddOns]);
 
   if (!clientData) {
     return (

@@ -10,13 +10,11 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        // We pass the required hours to the engine so it can run the Anchor Rule!
         const res = await fetch(`/api/availability?serviceHours=${estimatedHours}`);
         const data = await res.json();
         
         setAvailableSlots(data);
         
-        // Auto-select the first available date
         if (data.length > 0) {
           setSelectedDateStr(data[0].date.split('T')[0]);
         }
@@ -37,6 +35,18 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
     acc[dateStr].push(slot);
     return acc;
   }, {});
+
+  // ENGINE UI INTEGRATION: Sort slots by Quality Score (highest first), then chronologically
+  Object.keys(slotsByDate).forEach(date => {
+    slotsByDate[date].sort((a, b) => {
+      // Sort by the engine's density recommendation first
+      if (b.qualityScore !== a.qualityScore) {
+        return (b.qualityScore || 0) - (a.qualityScore || 0); 
+      }
+      // If scores are tied, display them in standard chronological order
+      return a.startTime.localeCompare(b.startTime);
+    });
+  });
 
   const availableDates = Object.keys(slotsByDate).sort();
 
@@ -86,8 +96,7 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
             className="w-full p-4 border-2 rounded-xl outline-none focus:border-teal-500 bg-slate-50 text-slate-800 font-bold text-lg cursor-pointer"
           >
             {availableDates.map(dateStr => {
-              // Format for humans (e.g., "Thu, Mar 21")
-              const dateObj = new Date(dateStr + 'T12:00:00Z'); // Force noon UTC to prevent timezone shifts
+              const dateObj = new Date(dateStr + 'T12:00:00Z'); 
               const displayDate = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
               return (
                 <option key={dateStr} value={dateStr}>{displayDate}</option>
@@ -106,13 +115,19 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
                 <button
                   key={slot._id}
                   onClick={() => handleSlotClick(slot)}
-                  className={`p-4 rounded-xl border-2 transition-all text-left flex flex-col items-center justify-center
+                  className={`relative p-4 rounded-xl border-2 transition-all text-left flex flex-col items-center justify-center overflow-hidden
                     ${activeSlotId === slot._id 
                       ? 'border-teal-500 bg-teal-50 shadow-md ring-2 ring-teal-500 ring-offset-1' 
                       : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50'
                     }`}
                 >
-                  <span className={`text-xl font-black ${activeSlotId === slot._id ? 'text-teal-700' : 'text-slate-700'}`}>
+                  {/* Visually highlights perfect mathematical fits for the user */}
+                  {slot.qualityScore === 3 && (
+                    <div className="absolute top-0 w-full bg-teal-500 text-white text-[9px] font-bold uppercase tracking-widest text-center py-0.5">
+                      Best Fit
+                    </div>
+                  )}
+                  <span className={`text-xl font-black ${slot.qualityScore === 3 ? 'mt-2' : ''} ${activeSlotId === slot._id ? 'text-teal-700' : 'text-slate-700'}`}>
                     {slot.startTime}
                   </span>
                 </button>

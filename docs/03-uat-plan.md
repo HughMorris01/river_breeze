@@ -1,11 +1,9 @@
-# 03-uat-plan.md
-
 **User Acceptance Testing (UAT) & Quality Assurance Plan**
 
-**Project Name:** River Breeze Domestic Detailing Scheduling & Lead Gen Platform
-**Developer/Tester:** Greg Farrell
-**Date of Testing:** 2026-03-01
-**Project Version/Release:** v1.0 - Production Candidate
+**Project Name:** River Breeze Domestic Detailing Scheduling & Lead Gen Platform 
+**Developer/Tester:** Greg Farrell 
+**Date of Testing:** 2026-03-01 
+**Project Version/Release:** v1.0 - Production Candidate 
 
 ---
 
@@ -31,15 +29,15 @@
 
 | ID | Feature | Steps to Execute | Expected Result | Pass/Fail | Proof |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **SCH-01** | Travel Buffer | Book a 2-hour job at 9:00 AM. Check availability for a subsequent 2-hour job. | Next slot starts at 11:30 AM (includes mandatory 30-min travel buffer). | [ ] | [Proof] |
-| **SCH-02** | Gap Prevention | Define a shift from 9:00 AM - 5:00 PM. Attempt to book a slot that leaves a 30-min gap. | Slot is hidden; engine only allows 0 min gaps or >= 60 min gaps. | [ ] | [Proof] |
-| **SCH-03** | Race Condition | Open two browsers. Book the same slot on Browser A, then immediately on Browser B. | Browser B is rejected by the Real-Time Security Check with "Slot was just booked" error. | [ ] | [Proof] |
+| **SCH-01** | Travel Buffer | Book a 2-hour job at 9:00 AM. Check availability for a subsequent 2-hour job. | Next slot starts at 11:30 AM (includes mandatory 30-min travel buffer). | PASS | ![Appointment A](./media/image-1.png) ![Appointment B](./media/image-2.png)|
+| **SCH-02** | Gap Prevention | Define a shift from 7:00 AM - 12:00 PM. Attempt to book a 1.5hr job that would leaves a 30-min gap. | Should not display 7:30 as a start time; engine only allows 0 min gaps or >= 60 min gaps. | PASS | ![Create Shift](./media/image-3.png) ![Shift Added](./media/image-4.png) ![Available Slots](./media/image-5.png)|
+| **SCH-03** | Race Condition | Open two browsers. Book the same slot on Browser A, then immediately on Browser B. | Browser B is rejected by the Real-Time Security Check with "Slot was just booked" error. | [ ] |![User John Books](./media/image-6.png) ![User Katherine Denied](./media/image-7.png)|
 
 **Phase 2: Lead Gen & Conditional Checkout**
 
 | ID | Feature | Steps to Execute | Expected Result | Pass/Fail | Proof |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **LGN-01** | Quote Engine | Input property specs (e.g., 2500 sqft, 3 beds, 2 baths) into the calculator. | Price and Est. Time update instantly based on specific algorithms. | [ ] | [Proof] |
+| **LGN-01** | Quote Engine | Input property specs (e.g., 2500 sqft, 3 beds, 2 baths) into the calculator. | Price and Est. Time update instantly based on specific algorithms. | [ ] | ![Default Setting](./media/image-8.png) ![Updated Quote](./media/image-9.png) |
 | **LGN-02** | Deposit Flow | As a "New Client," complete the booking form and proceed to checkout. | Routing forces a $20 non-refundable credit card deposit before confirmation. | [ ] | [Proof] |
 | **LGN-03** | Magic Reveal | Verify identity as a "Returning Client" with address + phone. | App triggers premium CSS clip-path animation and loads past property data. | [ ] | [Proof] |
 

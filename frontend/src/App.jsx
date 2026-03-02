@@ -1,11 +1,9 @@
-// frontend/src/App.jsx
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { Toaster, toast } from 'react-hot-toast';
 import Header from './components/Header';
-import Hero from './components/Hero';
-import Testimonials from './components/Testimonials';
+import Home from './pages/Home';
 import QuoteCalculator from './pages/QuoteCalculator';
 import NewClientBooking from './pages/NewClientBooking';
 import ReturningClientConfirm from './pages/ReturningClientConfirm';
@@ -17,10 +15,8 @@ import Footer from './components/Footer';
 export default function App() {
   const { token } = useAuthStore();
 
-  // WAKE UP PING FOR RENDER FREE TIER
   useEffect(() => {
     let timeoutId;
-
     const wakeUpServer = async () => {
       try {
         timeoutId = setTimeout(() => {
@@ -43,7 +39,6 @@ export default function App() {
     };
 
     wakeUpServer();
-
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -52,58 +47,24 @@ export default function App() {
       <div className="min-h-screen flex flex-col bg-slate-50 font-sans selection:bg-teal-100 selection:text-teal-900">
         <Toaster position="top-center" toastOptions={{ duration: 5000 }} />
         
-        {/* The Header is now globally present for unauthenticated users */}
-         <Header />
+        <Header />
 
         <main className="grow">
           <Routes>
-            {/* PUBLIC ROUTES */}
-            <Route path="/" element={
-              <>
-                <Hero />
-                <Testimonials />
-              </>
-            } />
+            <Route path="/" element={<Home />} />
+            <Route path="/quote" element={<QuoteCalculator />} />
+            <Route path="/booking" element={<NewClientBooking />} />
+            <Route path="/returning" element={<ReturningClientConfirm />} />
+            <Route path="/returning/confirm" element={<ReturningClientBooking />} />
             
-            <Route path="/quote" element={
-               <div className="pt-22 md:pt-38 pb-10 px-4">
-                 <QuoteCalculator />
-               </div>
-            } />
-
-            <Route path="/booking" element={
-              <div className="pt-22 md:pt-38 pb-10 px-4">
-                <NewClientBooking />
-              </div>
-            } />
-            
-            <Route path="/returning" element={
-              <div className="max-w-7xl mx-auto px-4 md:px-6 w-full pt-32 pb-10">
-                <ReturningClientConfirm />
-              </div>
-            } />
-
-            <Route path="/returning/confirm" element={
-              <div className="max-w-7xl mx-auto px-4 md:px-6 w-full pt-32 pb-10">
-                <ReturningClientBooking />
-              </div>
-            } />
-            
-            {/* If logged in, redirect away from login screen */}
             <Route path="/login" element={
-              token ? <Navigate to="/admin" /> : (
-                <div className="pt-32 md:pt-48 pb-10 px-4">
-                  <LoginPage />
-                </div>
-              )
+              token ? <Navigate to="/admin" /> : <LoginPage />
             } />
 
-            {/* PROTECTED ROUTE: Must have a token to view Dashboard */}
             <Route path="/admin" element={
               token ? <AdminDashboard /> : <Navigate to="/login" />
             } />
 
-            {/* CATCH-ALL: Redirect bad URLs back to home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
