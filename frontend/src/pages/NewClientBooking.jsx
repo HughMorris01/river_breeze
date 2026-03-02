@@ -138,13 +138,14 @@ export default function NewClientBooking() {
   const balanceDue = (quoteDetails.quote.price - 20).toFixed(2);
 
   return (
-    <div className="max-w-6xl mx-auto overflow-hidden bg-white shadow-2xl rounded-2xl mb-20 mt-12">
-      <div className="px-6 py-10 text-center text-white bg-slate-800">
-        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Secure Your Booking</h2>
-        <p className="max-w-xl mx-auto mt-4 text-slate-300">
-          A $20.00 deposit secures your slot on Kate's calendar. The remaining balance is due after your walkthrough.
-        </p>
-      </div>
+    <div className="pt-32 md:pt-48 pb-10 px-4">
+      <div className="max-w-6xl mx-auto overflow-hidden bg-white shadow-2xl rounded-2xl mb-20">
+        <div className="px-6 py-10 text-center text-white bg-slate-800">
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Secure Your Booking</h2>
+          <p className="max-w-xl mx-auto mt-4 text-slate-300">
+            A $20.00 deposit secures your slot on Kate's calendar. The remaining balance is due after your walkthrough.
+          </p>
+        </div>
 
       <div className="p-3 md:p-10">
         <form onSubmit={handleBooking} className="grid grid-cols-1 lg:grid-cols-5 gap-10">
@@ -319,5 +320,6 @@ export default function NewClientBooking() {
         </form>
       </div>
     </div>
+   </div> 
   );
 }

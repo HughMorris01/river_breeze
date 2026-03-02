@@ -101,6 +101,7 @@ export default function ReturningClientBooking() {
   }, [isEditing, lastJob, serviceType, selectedAddOns, clientData, showAddOns]);
 
   if (!clientData) {
+    
     return (
       <div className="max-w-2xl mx-auto mt-12 bg-white shadow-2xl rounded-2xl p-12 text-center border border-slate-100">
         <h2 className="text-2xl font-black text-slate-800">Session Expired</h2>
@@ -171,13 +172,14 @@ export default function ReturningClientBooking() {
   const displayPrice = Number.isInteger(dynamicQuote.price) ? dynamicQuote.price : dynamicQuote.price.toFixed(2);
 
   return (
-    <div className="max-w-5xl mx-auto mt-12 overflow-hidden bg-white shadow-2xl rounded-2xl mb-20">
-      <div className="px-4 py-10 text-center text-white bg-teal-700">
-        <h2 className="text-4xl font-extrabold tracking-tight">Welcome Back, {clientData.name.split(' ')[0]}!</h2>
-        <p className="max-w-xl mx-auto mt-4 text-lg text-teal-100">
-          Review your property details and grab an open spot on Kate's schedule.
-        </p>
-      </div>
+    <div className="pt-32 md:pt-48 pb-10 px-4">
+      <div className="max-w-5xl mx-auto overflow-hidden bg-white shadow-2xl rounded-2xl mb-20">
+        <div className="px-4 py-10 text-center text-white bg-teal-700">
+          <h2 className="text-4xl font-extrabold tracking-tight">Welcome Back, {clientData.name.split(' ')[0]}!</h2>
+          <p className="max-w-xl mx-auto mt-4 text-lg text-teal-100">
+            Review your property details and grab an open spot on Kate's schedule.
+          </p>
+        </div>
 
       <div className="p-6 md:p-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -312,6 +314,7 @@ export default function ReturningClientBooking() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -52,14 +52,15 @@ export default function ReturningClientConfirm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto md:mt-20 bg-white shadow-2xl rounded-2xl overflow-hidden mb-20 border border-slate-100">
-      
-      <div className="px-8 py-10 text-center text-white bg-slate-800">
-        <h2 className="text-3xl font-extrabold tracking-tight">Welcome Back</h2>
-        <p className="mt-3 text-slate-300 font-medium">
-          Verify your property details to skip the quote process and book your next service.
-        </p>
-      </div>
+    <div className="pt-32 md:pt-48 pb-10 px-4">
+      <div className="max-w-2xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden mb-20 border border-slate-100">
+        
+        <div className="px-8 py-10 text-center text-white bg-slate-800">
+          <h2 className="text-3xl font-extrabold tracking-tight">Welcome Back</h2>
+          <p className="mt-3 text-slate-300 font-medium">
+            Verify your property details to skip the quote process and book your next service.
+          </p>
+        </div>
 
       <div className="p-4 md:p-12">
         <form onSubmit={handleVerify} className="space-y-6">
@@ -138,6 +139,7 @@ export default function ReturningClientConfirm() {
           onComplete={() => navigate('/returning/confirm', { state: { clientData: verifiedData } })} 
         />
       )}
+    </div>
     </div>
   );
 }

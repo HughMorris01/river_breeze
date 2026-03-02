@@ -90,13 +90,14 @@ export default function QuoteCalculator() {
   const displayPrice = Number.isInteger(quote.price) ? quote.price : quote.price.toFixed(2);
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="text-center mb-10 mt-10">
-        <h1 className="text-3xl md:text-5xl font-black text-slate-800 tracking-tight">Instant Quote Calculator</h1>
-        <p className="text-slate-500 mt-4 text-sm md:text-base max-w-2xl mx-auto">
-          Customize your cleaning package below. Our smart engine will instantly calculate an accurate price and time estimate based on your exact needs.
-        </p>
-      </div>
+    <div className="pt-32 md:pt-48 pb-10 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-5xl font-black text-slate-800 tracking-tight">Instant Quote Calculator</h1>
+          <p className="text-slate-500 mt-4 text-sm md:text-base max-w-2xl mx-auto">
+            Customize your cleaning package below. Our smart engine will instantly calculate an accurate price and time estimate based on your exact needs.
+          </p>
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
         
@@ -332,6 +333,7 @@ export default function QuoteCalculator() {
           })} 
         />
       )}
+    </div>
     </div>
   );
 }

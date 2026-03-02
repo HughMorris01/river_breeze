@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import { toast } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import Services from './pages/Services';
 import QuoteCalculator from './pages/QuoteCalculator';
 import NewClientBooking from './pages/NewClientBooking';
 import ReturningClientConfirm from './pages/ReturningClientConfirm';
@@ -47,6 +48,7 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
           <Route path="/quote" element={<QuoteCalculator />} />
           <Route path="/booking" element={<NewClientBooking />} />
           <Route path="/returning" element={<ReturningClientConfirm />} />
