@@ -45,14 +45,14 @@ export default function Header() {
       </div>
 
       {/* 2. Center Column: Navigation Links (Hidden on Mobile) */}
-      <div className="hidden md:flex flex-1 justify-center items-center gap-8">
-        <Link to="/services" className={`font-bold text-sm uppercase tracking-widest transition-colors ${isHome && !token ? 'text-white/90 hover:text-white' : 'text-slate-500 hover:text-teal-600'}`}>
+      <div className="hidden md:flex flex-1 justify-center items-center gap-4 lg:gap-8">
+        <Link to="/services" className={`whitespace-nowrap font-bold text-sm uppercase tracking-widest transition-colors ${isHome && !token ? 'text-white/90 hover:text-white' : 'text-slate-500 hover:text-teal-600'}`}>
           Services
         </Link>
-        <Link to="/quote" className={`font-bold text-sm uppercase tracking-widest transition-colors ${isHome && !token ? 'text-white/90 hover:text-white' : 'text-slate-500 hover:text-teal-600'}`}>
+        <Link to="/quote" className={`whitespace-nowrap font-bold text-sm uppercase tracking-widest transition-colors ${isHome && !token ? 'text-white/90 hover:text-white' : 'text-slate-500 hover:text-teal-600'}`}>
           Get a Quote
         </Link>
-        <Link to="/returning" className={`font-bold text-sm uppercase tracking-widest transition-colors ${isHome && !token ? 'text-white/90 hover:text-white' : 'text-slate-500 hover:text-teal-600'}`}>
+        <Link to="/returning" className={`whitespace-nowrap font-bold text-sm uppercase tracking-widest transition-colors ${isHome && !token ? 'text-white/90 hover:text-white' : 'text-slate-500 hover:text-teal-600'}`}>
           Returning Clients
         </Link>
       </div>

@@ -1,12 +1,15 @@
 // frontend/src/pages/Services.jsx
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function Services() {
+  // Track which card is currently being hovered. Defaults to the center card.
+  const [activeCard, setActiveCard] = useState('standard');
+
   return (
     <div className="pt-32 md:pt-48 pb-20 px-4">
       <div className="max-w-7xl mx-auto">
         
-        {/* Page Header */}
         <div className="text-center mb-16 md:mb-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <h1 className="text-4xl md:text-6xl font-black text-slate-800 tracking-tight mb-6">
             Detailing Packages tailored for <br className="hidden md:block" />
@@ -17,72 +20,138 @@ export default function Services() {
           </p>
         </div>
 
-        {/* The Packages Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 max-w-6xl mx-auto">
+        {/* The Packages Grid - Snaps back to standard when mouse leaves the whole area */}
+        <div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 max-w-6xl mx-auto"
+          onMouseLeave={() => setActiveCard('standard')}
+        >
           
-          {/* Package 1: Express */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-transform duration-300 flex flex-col relative overflow-hidden">
-            <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mb-6">
-              <span className="text-2xl">⏱️</span>
+          {/* PACKAGE 1: EXPRESS */}
+          <div 
+            onMouseEnter={() => setActiveCard('express')}
+            className={`group relative rounded-3xl p-8 flex flex-col overflow-hidden transition-all duration-500 border
+              ${activeCard === 'express' 
+                ? 'bg-slate-800 border-transparent md:scale-105 z-20 shadow-2xl md:-translate-y-2' 
+                : 'bg-white border-slate-100 md:scale-100 z-0 shadow-xl shadow-slate-200/50'
+              }
+            `}
+          >
+            {/* Background Image Reveal */}
+            <div 
+              className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-700 ease-out
+                ${activeCard === 'express' ? '[clip-path:circle(150%_at_50%_50%)]' : '[clip-path:circle(0%_at_50%_50%)]'}
+              `}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=800&auto=format&fit=crop')" }}
+            >
+              <div className="absolute inset-0 bg-slate-900/85"></div>
             </div>
-            <h3 className="text-2xl font-black text-slate-800 mb-3">Express Touch-Up</h3>
-            <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-grow">
-              A rapid 1-hour surface wipe down and quick tidy. Perfect for last-minute guests or a quick refresh between your deep cleans.
-            </p>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> High-traffic surface sanitization</li>
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> Quick vacuum of main living areas</li>
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> Trash removal and light tidying</li>
-            </ul>
-            <div className="pt-6 border-t border-slate-100 mt-auto">
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Fixed Rate</p>
-              <p className="text-3xl font-black text-teal-600">$59.99</p>
+
+            {/* Content Layer */}
+            <div className={`relative z-10 flex flex-col h-full transition-colors duration-500 ${activeCard === 'express' ? 'text-white' : 'text-slate-800'}`}>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 backdrop-blur-sm ${activeCard === 'express' ? 'bg-teal-50/10' : 'bg-teal-50'}`}>
+                <span className="text-2xl">⏱️</span>
+              </div>
+              <h3 className="text-2xl font-black mb-3">Express Touch-Up</h3>
+              <p className={`text-sm leading-relaxed mb-8 grow transition-colors duration-500 ${activeCard === 'express' ? 'text-slate-300' : 'text-slate-500'}`}>
+                A rapid 1-hour surface wipe down and quick tidy. Perfect for last-minute guests or a quick refresh between your deep cleans.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'express' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> High-traffic surface sanitization</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'express' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Quick vacuum of main living areas</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'express' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Trash removal and light tidying</li>
+              </ul>
+              <div className={`pt-6 border-t mt-auto transition-colors duration-500 ${activeCard === 'express' ? 'border-white/20' : 'border-slate-100'}`}>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Fixed Rate</p>
+                <p className={`text-3xl font-black transition-colors duration-500 ${activeCard === 'express' ? 'text-teal-400' : 'text-teal-600'}`}>$59.99</p>
+              </div>
             </div>
           </div>
 
-          {/* Package 2: Standard (Highlighted) */}
-          <div className="bg-slate-800 rounded-3xl p-8 shadow-2xl hover:-translate-y-2 transition-transform duration-300 flex flex-col relative overflow-hidden transform md:scale-105 z-10">
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-400 to-blue-500"></div>
-            <div className="w-14 h-14 bg-slate-700 rounded-2xl flex items-center justify-center mb-6">
-              <span className="text-2xl">✨</span>
+          {/* PACKAGE 2: STANDARD */}
+          <div 
+            onMouseEnter={() => setActiveCard('standard')}
+            className={`group relative rounded-3xl p-8 flex flex-col overflow-hidden transition-all duration-500 border
+              ${activeCard === 'standard' 
+                ? 'bg-slate-800 border-transparent md:scale-105 z-20 shadow-2xl md:-translate-y-2' 
+                : 'bg-white border-slate-100 md:scale-100 z-0 shadow-xl shadow-slate-200/50'
+              }
+            `}
+          >
+            {/* Background Image Reveal */}
+            <div 
+              className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-700 ease-out
+                ${activeCard === 'standard' ? '[clip-path:circle(150%_at_50%_50%)]' : '[clip-path:circle(0%_at_50%_50%)]'}
+              `}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop')" }}
+            >
+              <div className="absolute inset-0 bg-slate-900/85"></div>
             </div>
-            <div className="absolute top-6 right-6 bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest py-1 px-3 rounded-full">
-              Most Popular
-            </div>
-            <h3 className="text-2xl font-black text-white mb-3">Standard Clean</h3>
-            <p className="text-slate-300 text-sm leading-relaxed mb-8 flex-grow">
-              Perfect for routine upkeep and pristine maintenance. Includes deep dusting, vacuuming, mopping, and full surface sanitization.
-            </p>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start text-sm text-slate-300 font-medium"><span className="text-teal-400 mr-2">✓</span> Deep dusting of all accessible surfaces</li>
-              <li className="flex items-start text-sm text-slate-300 font-medium"><span className="text-teal-400 mr-2">✓</span> Full kitchen & bathroom sanitization</li>
-              <li className="flex items-start text-sm text-slate-300 font-medium"><span className="text-teal-400 mr-2">✓</span> Comprehensive floor care (vacuum & mop)</li>
-              <li className="flex items-start text-sm text-slate-300 font-medium"><span className="text-teal-400 mr-2">✓</span> Custom estimated by property size</li>
-            </ul>
-            <div className="pt-6 border-t border-slate-700 mt-auto">
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Starts At</p>
-              <p className="text-3xl font-black text-white">$85.00</p>
+            
+            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-400 to-blue-500 z-10"></div>
+            
+            <div className={`relative z-10 flex flex-col h-full transition-colors duration-500 ${activeCard === 'standard' ? 'text-white' : 'text-slate-800'}`}>
+              <div className="absolute top-0 right-0 bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest py-1 px-3 rounded-full">
+                Most Popular
+              </div>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 backdrop-blur-sm ${activeCard === 'standard' ? 'bg-white/10' : 'bg-teal-50'}`}>
+                <span className="text-2xl">✨</span>
+              </div>
+              <h3 className="text-2xl font-black mb-3">Standard Clean</h3>
+              <p className={`text-sm leading-relaxed mb-8 flex-grow transition-colors duration-500 ${activeCard === 'standard' ? 'text-slate-300' : 'text-slate-500'}`}>
+                Perfect for routine upkeep and pristine maintenance. Includes deep dusting, vacuuming, mopping, and full surface sanitization.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'standard' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Deep dusting of all surfaces</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'standard' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Full kitchen & bathroom detail</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'standard' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Comprehensive floor care</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'standard' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Custom estimated by property size</li>
+              </ul>
+              <div className={`pt-6 border-t mt-auto transition-colors duration-500 ${activeCard === 'standard' ? 'border-white/20' : 'border-slate-100'}`}>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Starts At</p>
+                <p className={`text-3xl font-black transition-colors duration-500 ${activeCard === 'standard' ? 'text-white' : 'text-teal-600'}`}>$85.00</p>
+              </div>
             </div>
           </div>
 
-          {/* Package 3: Deep Reset */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-transform duration-300 flex flex-col relative overflow-hidden">
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-              <span className="text-2xl">🌊</span>
+          {/* PACKAGE 3: DEEP RESET */}
+          <div 
+            onMouseEnter={() => setActiveCard('reset')}
+            className={`group relative rounded-3xl p-8 flex flex-col overflow-hidden transition-all duration-500 border
+              ${activeCard === 'reset' 
+                ? 'bg-slate-800 border-transparent md:scale-105 z-20 shadow-2xl md:-translate-y-2' 
+                : 'bg-white border-slate-100 md:scale-100 z-0 shadow-xl shadow-slate-200/50'
+              }
+            `}
+          >
+            {/* Background Image Reveal */}
+            <div 
+              className={`absolute inset-0 z-0 bg-cover bg-center transition-all duration-700 ease-out
+                ${activeCard === 'reset' ? '[clip-path:circle(150%_at_50%_50%)]' : '[clip-path:circle(0%_at_50%_50%)]'}
+              `}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?q=80&w=800&auto=format&fit=crop')" }}
+            >
+              <div className="absolute inset-0 bg-slate-900/85"></div>
             </div>
-            <h3 className="text-2xl font-black text-slate-800 mb-3">The Spring Reset</h3>
-            <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-grow">
-              Massive, top-to-bottom clean for a fresh start. Includes intense scrubbing, heavy buildup removal, and detailed attention to neglected areas.
-            </p>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> Baseboard and molding detailing</li>
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> Intense shower & grout scrubbing</li>
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> Hard-to-reach cobweb & dust removal</li>
-              <li className="flex items-start text-sm text-slate-600 font-medium"><span className="text-teal-500 mr-2">✓</span> Inside appliance cleaning available</li>
-            </ul>
-            <div className="pt-6 border-t border-slate-100 mt-auto">
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Starts At</p>
-              <p className="text-3xl font-black text-teal-600">$140.00</p>
+
+            {/* Content Layer */}
+            <div className={`relative z-10 flex flex-col h-full transition-colors duration-500 ${activeCard === 'reset' ? 'text-white' : 'text-slate-800'}`}>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-500 backdrop-blur-sm ${activeCard === 'reset' ? 'bg-blue-50/10' : 'bg-blue-50'}`}>
+                <span className="text-2xl">🌊</span>
+              </div>
+              <h3 className="text-2xl font-black mb-3">The Spring Reset</h3>
+              <p className={`text-sm leading-relaxed mb-8 grow transition-colors duration-500 ${activeCard === 'reset' ? 'text-slate-300' : 'text-slate-500'}`}>
+                Massive, top-to-bottom clean for a fresh start. Includes intense scrubbing, heavy buildup removal, and detailed attention to neglected areas.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'reset' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Baseboard and molding detailing</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'reset' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Intense shower & grout scrubbing</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'reset' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Hard-to-reach cobweb removal</li>
+                <li className="flex items-start text-sm font-medium"><span className={`mr-2 transition-colors duration-500 ${activeCard === 'reset' ? 'text-teal-400' : 'text-teal-500'}`}>✓</span> Inside appliance cleaning available</li>
+              </ul>
+              <div className={`pt-6 border-t mt-auto transition-colors duration-500 ${activeCard === 'reset' ? 'border-white/20' : 'border-slate-100'}`}>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Starts At</p>
+                <p className={`text-3xl font-black transition-colors duration-500 ${activeCard === 'reset' ? 'text-teal-400' : 'text-teal-600'}`}>$140.00</p>
+              </div>
             </div>
           </div>
 
