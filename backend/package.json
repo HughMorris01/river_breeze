@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "data:clients": "node seeder.js -clients",
-    "data:import": "node seeder.js -import"
+    "data:clients": "node ./data/seeder.js -clients",
+    "data:import": "node ./data/seeder.js -import"
   },
   "keywords": [],
   "author": "Greg Farrell",

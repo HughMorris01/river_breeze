@@ -21,41 +21,45 @@
 
 **3. Functional Requirements**
 
-* **User Authentication:** Secure JWT-based login exclusively for the business owner to access the Admin Dashboard.
-* **Core Feature A (Dynamic Quote Calculator):** Interactive form capturing square footage, beds/baths, pets, and cleaning type (Express, Standard, Spring Breeze Reset) to output an estimated price and time duration.
-* **Core Feature B (Intelligent Booking & Deposit Flow):** A calendar interface displaying available slots governed by a custom algorithm. Includes a conditional checkout: Returning clients bypass deposits (Pay in Person), while New clients must pay a $20 non-refundable credit card deposit.
-* **Data Management:** Admin dashboard with a CRM-lite view identifying "New" vs. "Returning" clients, availability shift management, and appointment Kanban/List views (Pending, Confirmed, Completed, Canceled).
-* **Integrations:** Google Maps Autocomplete (bound to a 30-mile radius around Clayton, NY), Stripe API for deposit capture, and automated email confirmations/reminders.
+* **User Authentication:** Secure JWT-based login exclusively for the business owner to access the protected Admin Dashboard.
+* **Core Feature A (Dynamic Quote Calculator):** Interactive form capturing property variables (square footage, beds/baths, pets) and cleaning type (Express, Standard, Spring Reset) to instantly output an estimated price and service duration.
+* **Core Feature B (Two-Pass Smart Anchor Engine):** A custom scheduling algorithm that calculates exact job footprints (job time + 15-minute travel buffer). It anchors new slots flush against existing jobs or shift boundaries and steps in 120-minute increments to eliminate schedule fragmentation. Includes a "Squeeze Pass" that strips the buffer to mathematically fit appointments into tight schedules.
+* **Core Feature C (Conditional Booking Flow):** Returning clients bypass the quoting calculator via identity verification (Address + Phone) for a frictionless 2-click rebook. New clients proceed through a full booking flow with a simulated $20 credit card deposit checkout.
+* **Data Management (CRM-Lite Dashboard):** Admin portal featuring dynamic tabs (Pending, Confirmed, Completed, Canceled), automated "New" vs. "Returning" client badges, job finalization with internal property notes, soft-archiving of inactive clients, and availability shift management.
+* **Integrations:** Google Maps Places API Autocomplete (bound to specific coordinates around Clayton, NY) for strict address validation and standardized data entry.
 
 **4. Technical Requirements**
 
 | Component | Technology |
 | --- | --- |
-| **Frontend** | React.js (Vite), Tailwind CSS, Zustand |
+| **Frontend** | React.js (Vite), Tailwind CSS, Zustand, React Router DOM, React Hot Toast |
 | **Backend** | Node.js, Express.js |
 | **Database** | MongoDB / Mongoose |
 | **Authentication**| JWT (JSON Web Tokens) |
-| **Integrations** | Google Places API, Stripe API, SendGrid/Nodemailer |
+| **Integrations** | Google Maps Places API |
 | **Version Control**| Git / GitHub |
+
+*(Note: The payment gateway UI is built out for Credit Card, PayPal, and Stripe, but the actual transaction processing is bypassed/simulated for UAT testing.)*
 
 **5. User Flow & UX/UI Design**
 
-* **Design Language:** Premium, modern interface leaning into "Breeze" and "Detailing" branding. Features Apple-style glassmorphism, interactive "Before & After" image sliders, and custom CSS clip-path animations (Magic Reveal).
+* **Design Language:** Premium, modern interface leaning into the "River Breeze" branding. Features Apple-style glassmorphism, dynamic AM/PM time formatting, and high-end native CSS `clip-path` animations (the "Magic Reveal" hover effects).
 * **Key Pages:**
     * `/` (Home / Landing Page)
+    * `/services` (Service Packages with Hybrid Desktop/Mobile Magic Reveal)
     * `/quote` (Dynamic Calculator)
-    * `/book` (New Client Checkout & Scheduling)
-    * `/returning` (Identity Verification)
-    * `/returning/confirm` (Returning Client 2-Click Rebook)
-    * `/admin` (Protected Dashboard)
-* **Sitemap:** Linear conversion funnel from Landing -> Quote -> Book, with a separate isolated track for Returning Clients.
+    * `/booking` (New Client Checkout & Scheduling)
+    * `/returning` (Returning Client Identity Verification & Rebooking)
+    * `/admin` (Protected CRM Dashboard & Availability Manager)
+    * `/confirmation` (Digital Receipt & Booking Summary)
+* **Sitemap:** Linear conversion funnel from Landing -> Services -> Quote -> Book, with a separate isolated, accelerated track for Returning Clients.
 
 **6. Non-Functional Requirements**
 
-* **Performance:** Instantaneous state updates in the dynamic calculator; fast optimistic UI updates in the admin dashboard.
-* **Security:** Stripe handles all PCI-compliant payment data (no sensitive financial data stored). Admin routes strictly protected by JWT middleware.
-* **Scalability:** Custom scheduling algorithm built to handle concurrent booking attempts without double-booking (Real-Time Security Check).
-* **Responsiveness:** Mobile-first approach, recognizing that most local service bookings happen on smartphones.
+* **Performance:** Instantaneous state calculations in the dynamic quote engine; rapid frontend rendering with optimized React state management.
+* **Security:** Admin routes and API endpoints strictly protected by JWT middleware. Simulated payment processing ensures zero exposure of sensitive financial data during the testing/UAT phase.
+* **Scalability:** The backend scheduling logic and MongoDB architecture are specifically designed to handle concurrent booking attempts, utilizing mathematical footprint comparisons to prevent race-condition double-bookings.
+* **Responsiveness:** Mobile-first approach utilizing Tailwind CSS, ensuring that complex UI elements like data tables, scheduling calendars, and CSS hover animations adapt perfectly to smartphone touch-interfaces.
 
 **7. Success Metrics (KPIs)**
 

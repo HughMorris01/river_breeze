@@ -1,9 +1,9 @@
 // backend/seeder.js
 import dotenv from 'dotenv';
-import connectDB from './config/db.js';
-import { seedClients } from './data/clients.js';
-import { seedAvailability } from './data/availability.js';
-import { seedAppointments } from './data/appointments.js';
+import connectDB from '../config/db.js';
+import { seedClients } from './clients.js';
+import { seedAvailability } from './availability.js';
+import { seedAppointments } from './appointments.js';
 
 dotenv.config();
 connectDB();
