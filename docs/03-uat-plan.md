@@ -25,13 +25,15 @@
 
 ### **3. Test Cases**
 
-**Phase 1: Scheduling Logic (Smart Anchor Engine)**
+**Phase 1: Scheduling Logic (Smart Anchor Engine v2.0)**
 
 | ID | Feature | Steps to Execute | Expected Result | Pass/Fail | Proof |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **SCH-01** | Travel Buffer | Book a 2-hour job at 9:00 AM. Check availability for a subsequent 2-hour job. | Next slot starts at 11:30 AM (includes mandatory 30-min travel buffer). | PASS | ![Appointment A](./media/image-1.png) ![Appointment B](./media/image-2.png)|
-| **SCH-02** | Gap Prevention | Define a shift from 7:00 AM - 12:00 PM. Attempt to book a 1.5hr job that would leaves a 30-min gap. | Should not display 7:30 as a start time; engine only allows 0 min gaps or >= 60 min gaps. | PASS | ![Create Shift](./media/image-3.png) ![Shift Added](./media/image-4.png) ![Available Slots](./media/image-5.png)|
+| **SCH-01** | 120-Minute Stepping | Create an empty 9:00 AM - 5:00 PM shift. Search for a 2.75 hr footprint (2.5h job + 15m buffer). | Engine displays slots exactly 2 hours apart starting from the shift start (9:00 AM, 11:00 AM, 1:00 PM). | PASS | ![Create Shift](./media/image-1.png) ![Shift Added](./media/image-2.png) ![Appointment Windows](./media/image-3.png) |
+| **SCH-02** | Flush Anchoring | With an existing 11:00 AM - 1:45 PM booking, search for a 1.75 hr footprint in the same shift. | Engine anchors exactly to the existing job, displaying 9:15 AM (backward flush) and 1:45 PM (forward flush). | [ ] | [Proof] |
+| **SCH-03** | The Squeeze Pass | Search for a 2.25 hr job on a day with exactly 2.25 hrs of contiguous free time remaining. | Engine strips the standard 15-min travel buffer (Pass 2) to successfully "cram" the job into the exact remaining space. | [ ] | [Proof] |
 | **SCH-03** | Race Condition | Open two browsers. Book the same slot on Browser A, then immediately on Browser B. | Browser B is rejected by the Real-Time Security Check with "Slot was just booked" error. | [ ] |![User John Books](./media/image-6.png) ![User Katherine Denied](./media/image-7.png)|
+
 
 **Phase 2: Lead Gen & Conditional Checkout**
 
@@ -61,6 +63,6 @@
 ### **4. Final Sign-Off**
 _By signing below, the developer and client agree that all functional requirements have been tested, proven via screenshot evidence, and are approved for production deployment._
 
-**Developer Signature:** ___________________________ **Date:** ____________
+**Developer Signature:** __Greg Farrell__ **Date:** _3/2/2026_
 
 **Client Signature:** ______________________________ **Date:** ____________

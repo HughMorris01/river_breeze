@@ -1,6 +1,16 @@
 // frontend/src/pages/BookingConfirmation.jsx
 import { useLocation, Link, Navigate } from 'react-router-dom';
 
+// Standard 12-hour formatter
+const formatAMPM = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  let hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12; 
+  return `${hour}:${m} ${ampm}`;
+};
+
 export default function BookingConfirmation() {
   const location = useLocation();
   const bookingDetails = location.state?.bookingDetails;
@@ -12,8 +22,9 @@ export default function BookingConfirmation() {
 
   const { clientName, address, serviceType, date, startTime, endTime, price, isNewClient } = bookingDetails;
 
-  // Format the date nicely for the UI
-  const displayDate = new Date(date + 'T12:00:00Z').toLocaleDateString('en-US', {
+  // FIX: Safely extract just the 'YYYY-MM-DD' part before appending noon UTC
+  const dateStr = date.split('T')[0];
+  const displayDate = new Date(dateStr + 'T12:00:00Z').toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -50,7 +61,8 @@ export default function BookingConfirmation() {
             <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">When</p>
               <p className="text-lg font-bold text-slate-800">{displayDate}</p>
-              <p className="text-teal-600 font-bold mt-1">{startTime} - {endTime}</p>
+              {/* APPLIED AM/PM FIX */}
+              <p className="text-teal-600 font-bold mt-1">{formatAMPM(startTime)} - {formatAMPM(endTime)}</p>
             </div>
             
             <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">

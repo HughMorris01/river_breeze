@@ -13,7 +13,7 @@ const formatPhone = (phone) => {
   return phone; 
 };
 
-// NEW HELPER: Standard 12-hour formatter
+// Standard 12-hour formatter
 const formatAMPM = (timeStr) => {
   if (!timeStr) return '';
   const [h, m] = timeStr.split(':');
@@ -173,16 +173,21 @@ export default function AdminDashboard() {
     return isPastDue && (appt.status === 'Confirmed' || appt.status === 'Pending');
   }).length;
 
-  // Roster Logic
+  // CRM Logic: Map Clients and count total appointments for "New" vs "Returning" badges
   const clientMap = new Map();
   appointments.forEach(appt => {
      if (!appt.client) return;
      const cid = appt.client._id;
      if (!clientMap.has(cid)) {
-         clientMap.set(cid, { ...appt.client, lastJobDate: null, lastJobPrice: null, lastJobAdminNotes: null, completedJobs: [] });
+         // Added totalAppointments tracking
+         clientMap.set(cid, { ...appt.client, totalAppointments: 0, lastJobDate: null, lastJobPrice: null, lastJobAdminNotes: null, completedJobs: [] });
      }
+     
+     const clientRecord = clientMap.get(cid);
+     clientRecord.totalAppointments += 1; // Increment for every appointment found
+     
      if (appt.status === 'Completed') {
-         clientMap.get(cid).completedJobs.push(appt);
+         clientRecord.completedJobs.push(appt);
      }
   });
 
@@ -259,88 +264,100 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredAppointments.map((appt) => (
-                <tr key={appt._id} className={`transition-colors ${appt.status === 'Canceled' ? 'bg-slate-50 opacity-60' : 'hover:bg-slate-50'}`}>
-                  
-                  <td className="p-3 text-center">
-                    {appt.date ? (
-                      <>
-                        <div className="font-bold text-slate-800">
-                          {new Date(appt.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' })}
-                        </div>
-                        {/* AM/PM FIX APPLIED HERE */}
-                        <div className="text-xs text-teal-600 font-bold mt-0.5">
-                          {formatAMPM(appt.startTime)} - {formatAMPM(appt.endTime)}
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">Unscheduled</span>
-                    )}
-                  </td>
+              {filteredAppointments.map((appt) => {
+                // Determine if this specific client has multiple appointments in the system
+                const isReturning = appt.client && clientMap.get(appt.client._id)?.totalAppointments > 1;
 
-                  <td className="p-3 text-center">
-                    <div className="font-bold text-slate-800">{appt.client?.name}</div>
-                    <div className="text-xs text-slate-500">{formatPhone(appt.client?.phone)}</div>
-                  </td>
-                  
-                  <td className="p-4 text-center">
-                    <span className="text-sm font-medium text-slate-700">{appt.serviceType}</span>
-                  </td>
-                  
-                  <td className="p-4 text-center">
-                    <span className="text-lg font-bold text-teal-600">${appt.quotedPrice}</span>
-                  </td>
+                return (
+                  <tr key={appt._id} className={`transition-colors ${appt.status === 'Canceled' ? 'bg-slate-50 opacity-60' : 'hover:bg-slate-50'}`}>
+                    
+                    <td className="p-3 text-center">
+                      {appt.date ? (
+                        <>
+                          <div className="font-bold text-slate-800">
+                            {new Date(appt.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                          <div className="text-xs text-teal-600 font-bold mt-0.5">
+                            {formatAMPM(appt.startTime)} - {formatAMPM(appt.endTime)}
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Unscheduled</span>
+                      )}
+                    </td>
 
-                  <td className="p-4 text-xs text-slate-500 leading-tight text-center">
-                    <div className="font-medium text-slate-700">{appt.client?.address}</div>
-                    {appt.addOns?.length > 0 && (
-                      <div className="mt-1 italic text-teal-600">Add-ons: {appt.addOns.join(', ')}</div>
-                    )}
-                    {appt.clientNotes && (
-                      <div className="mt-2 p-2 bg-amber-50 border border-amber-100 rounded text-amber-800 italic text-left inline-block w-full max-w-50">
-                        "{appt.clientNotes}"
+                    <td className="p-3 text-center">
+                      <div className="font-bold text-slate-800">{appt.client?.name}</div>
+                      <div className="text-xs text-slate-500 mb-1.5">{formatPhone(appt.client?.phone)}</div>
+                      {/* NEW / RETURNING BADGE */}
+                      <div className="flex justify-center">
+                        {isReturning ? (
+                           <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-indigo-100">Returning</span>
+                        ) : (
+                           <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100">New Client</span>
+                        )}
                       </div>
-                    )}
-                  </td>
-                  
-                  <td className="p-4 text-center">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                      appt.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 
-                      appt.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' :
-                      appt.status === 'Canceled' ? 'bg-red-100 text-red-700' :
-                      'bg-emerald-100 text-emerald-700'
-                    }`}>
-                      {appt.status}
-                    </span>
-                  </td>
-                  
-                  <td className="p-4 text-center">
-                    <div className="flex gap-2 justify-center">
-                      {activeTab === 'Pending' && (
-                        <>
-                          <button onClick={() => handleAction(appt._id, 'confirm')} className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-lg shadow-sm transition-colors">Confirm</button>
-                          <button onClick={() => handleAction(appt._id, 'cancel')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors">Cancel</button>
-                        </>
+                    </td>
+                    
+                    <td className="p-4 text-center">
+                      <span className="text-sm font-medium text-slate-700">{appt.serviceType}</span>
+                    </td>
+                    
+                    <td className="p-4 text-center">
+                      <span className="text-lg font-bold text-teal-600">${appt.quotedPrice}</span>
+                    </td>
+
+                    <td className="p-4 text-xs text-slate-500 leading-tight text-center">
+                      <div className="font-medium text-slate-700">{appt.client?.address}</div>
+                      {appt.addOns?.length > 0 && (
+                        <div className="mt-1 italic text-teal-600">Add-ons: {appt.addOns.join(', ')}</div>
                       )}
-
-                      {activeTab === 'Confirmed' && (
-                         <button onClick={() => handleAction(appt._id, 'cancel')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors">Cancel Booking</button>
+                      {appt.clientNotes && (
+                        <div className="mt-2 p-2 bg-amber-50 border border-amber-100 rounded text-amber-800 italic text-left inline-block w-full max-w-50">
+                          "{appt.clientNotes}"
+                        </div>
                       )}
+                    </td>
+                    
+                    <td className="p-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                        appt.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 
+                        appt.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' :
+                        appt.status === 'Canceled' ? 'bg-red-100 text-red-700' :
+                        'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {appt.status}
+                      </span>
+                    </td>
+                    
+                    <td className="p-4 text-center">
+                      <div className="flex gap-2 justify-center">
+                        {activeTab === 'Pending' && (
+                          <>
+                            <button onClick={() => handleAction(appt._id, 'confirm')} className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-lg shadow-sm transition-colors">Confirm</button>
+                            <button onClick={() => handleAction(appt._id, 'cancel')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors">Cancel</button>
+                          </>
+                        )}
 
-                      {activeTab === 'Completed' && appt.status !== 'Completed' && (
-                        <>
-                          <button onClick={() => setApptToComplete(appt)} className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm transition-colors animate-pulse">Finalize Job</button>
-                          <button onClick={() => handleAction(appt._id, 'cancel')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors">Cancel</button>
-                        </>
-                      )}
+                        {activeTab === 'Confirmed' && (
+                           <button onClick={() => handleAction(appt._id, 'cancel')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors">Cancel Booking</button>
+                        )}
 
-                      {appt.status === 'Completed' && <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Finished</span>}
-                      {appt.status === 'Canceled' && <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Canceled</span>}
-                    </div>
-                  </td>
+                        {activeTab === 'Completed' && appt.status !== 'Completed' && (
+                          <>
+                            <button onClick={() => setApptToComplete(appt)} className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm transition-colors animate-pulse">Finalize Job</button>
+                            <button onClick={() => handleAction(appt._id, 'cancel')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors">Cancel</button>
+                          </>
+                        )}
 
-                </tr>
-              ))}
+                        {appt.status === 'Completed' && <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Finished</span>}
+                        {appt.status === 'Canceled' && <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Canceled</span>}
+                      </div>
+                    </td>
+
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {filteredAppointments.length === 0 && (
@@ -376,7 +393,15 @@ export default function AdminDashboard() {
                           onClick={() => setExpandedClient(expandedClient === client._id ? null : client._id)}
                           className={`w-full p-4 flex justify-between items-center text-left transition-colors ${expandedClient === client._id ? 'bg-teal-50 border-b-2 border-teal-100' : 'hover:bg-slate-50'}`}
                         >
-                          <span className="font-bold text-slate-800 text-lg">{client.name}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-slate-800 text-lg">{client.name}</span>
+                            {/* ROSTER BADGE */}
+                            {client.totalAppointments > 1 ? (
+                              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-indigo-100 hidden sm:inline-block">Returning</span>
+                            ) : (
+                              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100 hidden sm:inline-block">New</span>
+                            )}
+                          </div>
                           <svg className={`w-5 h-5 text-slate-400 transition-transform ${expandedClient === client._id ? 'rotate-180 text-teal-600' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
