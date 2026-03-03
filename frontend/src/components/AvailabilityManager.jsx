@@ -1,3 +1,4 @@
+// frontend/src/components/AvailabilityManager.jsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -17,6 +18,16 @@ export default function AvailabilityManager({ refreshTrigger }) {
   const toMins = (timeStr) => {
     const [h, m] = timeStr.split(':').map(Number);
     return h * 60 + m;
+  };
+
+  // NEW: Helper for standard AM/PM display
+  const formatAMPM = (timeStr) => {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    let hour = parseInt(h, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12; // Converts 0 to 12
+    return `${hour}:${m} ${ampm}`;
   };
 
   // Generate today's date locally in YYYY-MM-DD format to prevent past date selection
@@ -96,11 +107,22 @@ export default function AvailabilityManager({ refreshTrigger }) {
     if (token) fetchShifts();
   }, [token, refreshTrigger, fetchShifts]);
 
+  // NEW: Sort shifts chronologically by Date AND Time for the UI
+  const sortedShifts = useMemo(() => {
+    return [...shifts].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      if (dateA !== dateB) return dateA - dateB;
+      // If dates match, sort by military time string (localeCompare handles "09:00" vs "14:00" perfectly)
+      return a.startTime.localeCompare(b.startTime);
+    });
+  }, [shifts]);
+
   const handleAddShift = async (e) => {
     e.preventDefault();
     if (!date || !startTime || !endTime) return toast.error('Please complete all fields.');
     
-    // FIX: Force date to Noon UTC so it never falls behind local midnight and disappears
+    // Force date to Noon UTC so it never falls behind local midnight and disappears
     const safeDate = new Date(date + 'T12:00:00Z').toISOString();
 
     setLoading(true);
@@ -166,7 +188,7 @@ export default function AvailabilityManager({ refreshTrigger }) {
               min={todayStr} 
               onChange={(e) => {
                 setDate(e.target.value);
-                setStartTime(''); // Reset times when date changes
+                setStartTime(''); 
                 setEndTime('');
               }}
               className="w-full p-3 border-2 rounded-lg outline-none focus:border-teal-500 bg-white" 
@@ -179,13 +201,13 @@ export default function AvailabilityManager({ refreshTrigger }) {
               value={startTime} 
               onChange={(e) => {
                 setStartTime(e.target.value);
-                setEndTime(''); // Reset end time when start changes
+                setEndTime(''); 
               }}
               disabled={!date}
               className="w-full p-3 border-2 rounded-lg outline-none focus:border-teal-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
             >
               <option value="" disabled>Select Start</option>
-              {availableStartTimes.map(t => <option key={`start-${t}`} value={t}>{t}</option>)}
+              {availableStartTimes.map(t => <option key={`start-${t}`} value={t}>{formatAMPM(t)}</option>)}
             </select>
           </div>
           <div className="w-full md:w-auto">
@@ -197,7 +219,7 @@ export default function AvailabilityManager({ refreshTrigger }) {
               className="w-full p-3 border-2 rounded-lg outline-none focus:border-teal-500 bg-white disabled:bg-slate-100 disabled:text-slate-400"
             >
               <option value="" disabled>Select End</option>
-              {availableEndTimes.map(t => <option key={`end-${t}`} value={t}>{t}</option>)}
+              {availableEndTimes.map(t => <option key={`end-${t}`} value={t}>{formatAMPM(t)}</option>)}
             </select>
           </div>
           <button 
@@ -213,11 +235,11 @@ export default function AvailabilityManager({ refreshTrigger }) {
       <div className="p-6 md:p-8 max-h-100 overflow-y-auto">
         <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">Upcoming Available Times</h3>
         
-        {shifts.length === 0 ? (
+        {sortedShifts.length === 0 ? (
           <p className="text-slate-500 italic">No upcoming availability set.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {shifts.map(shift => {
+            {sortedShifts.map(shift => {
               const shiftDate = new Date(shift.date);
               const displayDate = shiftDate.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -225,7 +247,8 @@ export default function AvailabilityManager({ refreshTrigger }) {
                 <div key={shift._id} className="p-4 border-2 border-slate-100 rounded-xl flex justify-between items-center bg-white hover:border-teal-100 transition-colors">
                   <div>
                     <p className="font-bold text-slate-800">{displayDate}</p>
-                    <p className="text-sm font-medium text-teal-600 mt-0.5">{shift.startTime} - {shift.endTime}</p>
+                    {/* FORMATTED TO AM/PM */}
+                    <p className="text-sm font-medium text-teal-600 mt-0.5">{formatAMPM(shift.startTime)} - {formatAMPM(shift.endTime)}</p>
                   </div>
                   
                   {shift.isLocked ? (
@@ -259,7 +282,7 @@ export default function AvailabilityManager({ refreshTrigger }) {
           <div className="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full animate-in fade-in zoom-in duration-200">
             <h3 className="text-xl font-bold text-slate-800 mb-2">Remove Availability?</h3>
             <p className="text-slate-500 text-sm mb-6">
-              Are you sure you want to remove the block from <strong className="text-slate-700">{shiftToDelete.startTime} to {shiftToDelete.endTime}</strong>? Clients will no longer be able to book this time.
+              Are you sure you want to remove the block from <strong className="text-slate-700">{formatAMPM(shiftToDelete.startTime)} to {formatAMPM(shiftToDelete.endTime)}</strong>? Clients will no longer be able to book this time.
             </p>
             <div className="flex gap-3">
               <button 

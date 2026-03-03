@@ -21,8 +21,12 @@ const toTimeStr = (mins) => {
 export const getAvailability = async (req, res) => {
   try {
     const { date, serviceHours } = req.query; 
-    const requestedHours = parseFloat(serviceHours) || 2.0; //2.0 hours default if not provided in request to prevent Nan errors
-    const requestedMins = requestedHours * 60;
+    const requestedHours = parseFloat(serviceHours) || 2.0;
+    
+    // --- NEW FOOTPRINT RULES ---
+    const jobMins = requestedHours * 60;
+    const standardFootprint = jobMins + 15; // Pass 1: Job + 15m travel buffer
+    const squeezeFootprint = jobMins;       // Pass 2: Exact job time (cram mode)
 
     const startDate = date ? new Date(date) : new Date();
     startDate.setHours(0, 0, 0, 0);
@@ -32,75 +36,101 @@ export const getAvailability = async (req, res) => {
     const shifts = await Shift.find({ date: { $gte: startDate, $lte: endDate } }).sort({ date: 1 });
     const appointments = await Appointment.find({ 
        date: { $gte: startDate, $lte: endDate },
-       status: { $in: ['Pending', 'Confirmed'] } // Canceled jobs do not block time
+       status: { $in: ['Pending', 'Confirmed'] } 
     });
 
     const availableSlots = [];
 
-    // --- THE SMART ANCHOR ENGINE (v2.0) ---
     shifts.forEach(shift => {
       const shiftDateStr = shift.date.toISOString().split('T')[0];
       const dayAppointments = appointments.filter(a => a.date.toISOString().split('T')[0] === shiftDateStr);
 
       const shiftStartMins = toMins(shift.startTime);
       const shiftEndMins = toMins(shift.endTime);
-
-      // 1. Inflate existing appointments with a mandatory 30-min travel buffer
+      
+      // DB times now represent the true footprint, no need to add virtual buffers here
       const bookedRanges = dayAppointments.map(a => ({
           start: toMins(a.startTime),
-          end: toMins(a.endTime) + 30 
+          end: toMins(a.endTime) 
       })).sort((a, b) => a.start - b.start);
 
-      // 2. Iterate through the shift in 30-minute intervals
-      for (let currentStart = shiftStartMins; currentStart + requestedMins <= shiftEndMins; currentStart += 30) {
-          const currentEnd = currentStart + requestedMins;
+      // --- GENERATOR FUNCTION ---
+      const getValidSlotsForFootprint = (footprint) => {
+        let candidates = new Set(); // Using a Set automatically prevents duplicate times
 
-          // Check for direct overlap with any existing bookings
-          const hasOverlap = bookedRanges.some(b => 
-              (currentStart >= b.start && currentStart < b.end) || 
-              (currentEnd > b.start && currentEnd <= b.end) ||
-              (currentStart <= b.start && currentEnd >= b.end)
-          );
+        if (bookedRanges.length === 0) {
+            // RULE 3: Empty day. Start at shift start, step forward by 2 hours (120 mins)
+            for (let c = shiftStartMins; c + footprint <= shiftEndMins; c += 120) {
+                candidates.add(c);
+            }
+        } else {
+            // RULES 4 & 5: Anchor flush to existing appointments and step outward
+            bookedRanges.forEach(b => {
+                // Anchor Backward (Flush to the start of an existing job)
+                let backAnchor = b.start - footprint;
+                while (backAnchor >= shiftStartMins) {
+                    candidates.add(backAnchor);
+                    backAnchor -= 120; // Step backwards by 2hrs
+                }
 
-          if (hasOverlap) continue;
+                // Anchor Forward (Flush to the end of an existing job)
+                let fwdAnchor = b.end;
+                while (fwdAnchor + footprint <= shiftEndMins) {
+                    candidates.add(fwdAnchor);
+                    fwdAnchor += 120; // Step forwards by 2hrs
+                }
+            });
+        }
 
-          // 3. THE BOUNDARY GRACE PERIOD & GAP VALIDATION
-          let prevEnd = shiftStartMins;
-          for (const b of bookedRanges) {
-              if (b.end <= currentStart) prevEnd = Math.max(prevEnd, b.end);
-          }
-          const gapBefore = currentStart - prevEnd;
-          const isStartBoundary = (prevEnd === shiftStartMins);
+        // Filter out any candidates that overlap with existing bookings
+        const validMins = Array.from(candidates).filter(cStart => {
+            const cEnd = cStart + footprint;
+            if (cStart < shiftStartMins || cEnd > shiftEndMins) return false;
 
-          let nextStart = shiftEndMins;
-          for (const b of bookedRanges) {
-              if (b.start >= currentEnd) nextStart = Math.min(nextStart, b.start);
-          }
-          const gapAfter = nextStart - currentEnd;
-          const isEndBoundary = (nextStart === shiftEndMins);
+            const hasOverlap = bookedRanges.some(b => 
+                (cStart >= b.start && cStart < b.end) || 
+                (cEnd > b.start && cEnd <= b.end) ||
+                (cStart <= b.start && cEnd >= b.end)
+            );
+            return !hasOverlap;
+        });
 
-          // THE ULTIMATE RULE:
-          // If a gap touches the start or end of the day, it is always valid (sleeping in / going home early).
-          // If a gap is trapped between two jobs, it MUST be 0 (flush) or >= 120 (room for an Express Clean).
-          const isValidBefore = isStartBoundary ? true : (gapBefore === 0 || gapBefore >= 120);
-          const isValidAfter = isEndBoundary ? true : (gapAfter === 0 || gapAfter >= 120);
+        return validMins.sort((a, b) => a - b);
+      };
 
-          if (isValidBefore && isValidAfter) {
-              // Quality Score ensures we still suggest the most efficient, tightest-packed schedules first!
-              let qualityScore = 1; // Edge case (leaves awkward gap at start/end of day)
-              if (gapBefore === 0 || gapAfter === 0) qualityScore = 2; // Anchored to at least one job
-              if (gapBefore === 0 && gapAfter === 0) qualityScore = 3; // Perfect flush fit between two jobs
+      // --- PASS 1: STANDARD CHECK ---
+      let validStarts = getValidSlotsForFootprint(standardFootprint);
+      let usedFootprint = standardFootprint;
+      let isSqueezed = false;
 
-              availableSlots.push({
-                  _id: `${shift._id}-${currentStart}`,
-                  date: shift.date,
-                  startTime: toTimeStr(currentStart),
-                  endTime: toTimeStr(currentEnd),
-                  shiftId: shift._id,
-                  qualityScore
-              });
+      // --- PASS 2: SQUEEZE CHECK (RULE 7) ---
+      if (validStarts.length === 0) {
+          validStarts = getValidSlotsForFootprint(squeezeFootprint);
+          if (validStarts.length > 0) {
+              usedFootprint = squeezeFootprint;
+              isSqueezed = true; // Flagged so we can optionally show it in the UI later
           }
       }
+
+      // Map mathematical results back to UI objects
+      validStarts.forEach(startMins => {
+          const endMins = startMins + usedFootprint;
+          
+          // Quality score boosts perfectly flushed fits to the top of the UI
+          let qualityScore = isSqueezed ? 1 : 2; 
+          const isFlush = bookedRanges.some(b => b.start === endMins || b.end === startMins);
+          if (isFlush) qualityScore = 3;
+
+          availableSlots.push({
+              _id: `${shift._id}-${startMins}`,
+              date: shift.date,
+              startTime: toTimeStr(startMins),
+              endTime: toTimeStr(endMins),
+              shiftId: shift._id,
+              qualityScore,
+              isSqueezed
+          });
+      });
     });
 
     res.status(200).json(availableSlots);

@@ -1,9 +1,9 @@
 **User Acceptance Testing (UAT) & Quality Assurance Plan**
 
-**Project Name:** River Breeze Domestic Detailing Scheduling & Lead Gen Platform 
-**Developer/Tester:** Greg Farrell 
-**Date of Testing:** 2026-03-01 
-**Project Version/Release:** v1.0 - Production Candidate 
+**Project Name:** River Breeze Domestic Detailing Scheduling & Lead Gen Platform  
+**Developer/Tester:** Greg Farrell  
+**Date of Testing:** 2026-03-01  
+**Project Version/Release:** v1.0 - Production Candidate  
 
 ---
 
@@ -16,7 +16,7 @@
 ---
 
 ### **2. Testing Protocol & Evidence**
-* **Goal:** Verify that all Functional and Technical requirements—specifically the Smart Anchor Engine and secure deposit flow—have been met.
+* **Goal:** Verify that all Functional and Technical requirements—specifically the Scheduling Engine has been met.
 * **Screenshot Protocol:** Every core functionality test **must** be accompanied by a screenshot proving the expected result. Embed screenshots in the "Proof" column using the syntax: `![Description](./path-to-image.png)`.
 * **Status Codes:** * **PASS:** Feature works exactly as expected.
     * **FAIL:** Feature is broken or produces an error.

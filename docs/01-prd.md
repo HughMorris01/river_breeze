@@ -9,7 +9,7 @@
 **1. Executive Summary**
 
 * **The Problem:** The client needs to modernize her local detailing business by digitizing the manual booking process and gaining strict control over her scheduling availability to eliminate unprofitable calendar gaps. 
-* **The Solution:** A full-stack MERN application featuring a high-conversion lead generation funnel, a dynamic quote calculator, and a custom "Smart Anchor" scheduling engine.
+* **The Solution:** A full-stack MERN application featuring a high-conversion lead generation funnel, a dynamic quote calculator, and a custom scheduling engine.
 * **Value Proposition:** Automates quoting, securely captures $20 deposits for new leads, retains returning clients with a frictionless rebooking flow, and mathematically protects the business's daily schedule from fragmentation. Differentiates from generic competitors by capturing the seasonal market with specialized packages.
 
 **2. Target Audience & User Personas**

@@ -1,6 +1,16 @@
 // frontend/src/components/BookingCalendar.jsx
 import { useState, useEffect } from 'react';
 
+// --- TIME FORMATTER ---
+const formatAMPM = (timeStr) => {
+  const [hourString, minute] = timeStr.split(':');
+  let hour = parseInt(hourString, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12;
+  hour = hour ? hour : 12; 
+  return `${hour}:${minute} ${ampm}`;
+};
+
 export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +38,6 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
     fetchAvailability();
   }, [estimatedHours]);
 
-  // Group the dynamic slots by Date for the UI
   const slotsByDate = availableSlots.reduce((acc, slot) => {
     const dateStr = slot.date.split('T')[0];
     if (!acc[dateStr]) acc[dateStr] = [];
@@ -36,14 +45,12 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
     return acc;
   }, {});
 
-  // ENGINE UI INTEGRATION: Sort slots by Quality Score (highest first), then chronologically
+  // Sort slots by Quality Score (highest first), then chronologically
   Object.keys(slotsByDate).forEach(date => {
     slotsByDate[date].sort((a, b) => {
-      // Sort by the engine's density recommendation first
       if (b.qualityScore !== a.qualityScore) {
         return (b.qualityScore || 0) - (a.qualityScore || 0); 
       }
-      // If scores are tied, display them in standard chronological order
       return a.startTime.localeCompare(b.startTime);
     });
   });
@@ -121,14 +128,14 @@ export default function BookingCalendar({ onSelectSlot, estimatedHours = 2.0 }) 
                       : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50'
                     }`}
                 >
-                  {/* Visually highlights perfect mathematical fits for the user */}
                   {slot.qualityScore === 3 && (
                     <div className="absolute top-0 w-full bg-teal-500 text-white text-[9px] font-bold uppercase tracking-widest text-center py-0.5">
                       Best Fit
                     </div>
                   )}
+                  {/* DISPLAY FORMATTED AM/PM TIME */}
                   <span className={`text-xl font-black ${slot.qualityScore === 3 ? 'mt-2' : ''} ${activeSlotId === slot._id ? 'text-teal-700' : 'text-slate-700'}`}>
-                    {slot.startTime}
+                    {formatAMPM(slot.startTime)}
                   </span>
                 </button>
               ))}

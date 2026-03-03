@@ -20,7 +20,6 @@ export const createAppointment = async (req, res) => {
     const apptStartMins = toMins(startTime);
     const apptEndMins = toMins(endTime);
 
-    // 1. Does Kate still have a shift that covers this exact time?
     const shifts = await Shift.find({ date: { $gte: apptDate, $lt: nextDay } });
     const validShift = shifts.find(s => toMins(s.startTime) <= apptStartMins && toMins(s.endTime) >= apptEndMins);
 
@@ -28,7 +27,7 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Kate recently updated her schedule and this time is no longer available.' });
     }
 
-    // 2. Did someone else literally just book this exact slot? (Includes 30 min travel buffer!)
+    // FIX: Removed the virtual +30 buffer since the new Engine handles footprints natively!
     const existingAppts = await Appointment.find({
       date: { $gte: apptDate, $lt: nextDay },
       status: { $in: ['Pending', 'Confirmed'] }
@@ -36,7 +35,7 @@ export const createAppointment = async (req, res) => {
 
     const hasOverlap = existingAppts.some(a => {
       const extStart = toMins(a.startTime);
-      const extEnd = toMins(a.endTime) + 30; // The travel buffer!
+      const extEnd = toMins(a.endTime); 
       return (apptStartMins < extEnd && apptEndMins > extStart);
     });
 
@@ -46,16 +45,8 @@ export const createAppointment = async (req, res) => {
     // --- END SECURITY CHECK ---
 
     const appointment = await Appointment.create({
-      client,
-      serviceType,
-      addOns,
-      quotedPrice,
-      status: 'Pending',
-      date,
-      startTime,
-      endTime,
-      estimatedHours,
-      clientNotes
+      client, serviceType, addOns, quotedPrice, status: 'Pending',
+      date, startTime, endTime, estimatedHours, clientNotes
     });
 
     res.status(201).json(appointment);

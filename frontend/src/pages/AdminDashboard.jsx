@@ -13,6 +13,16 @@ const formatPhone = (phone) => {
   return phone; 
 };
 
+// NEW HELPER: Standard 12-hour formatter
+const formatAMPM = (timeStr) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  let hour = parseInt(h, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12; 
+  return `${hour}:${m} ${ampm}`;
+};
+
 export default function AdminDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState('Pending'); 
@@ -69,7 +79,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // NEW: Finalize / Complete Handler with Notes
+  // Finalize / Complete Handler with Notes
   const confirmCompletion = async () => {
     if (!apptToComplete) return;
     try {
@@ -183,7 +193,7 @@ export default function AdminDashboard() {
          c.completedJobs.sort((a,b) => new Date(b.date) - new Date(a.date));
          c.lastJobDate = c.completedJobs[0].date;
          c.lastJobPrice = c.completedJobs[0].quotedPrice;
-         c.lastJobAdminNotes = c.completedJobs[0].adminNotes; // Grab the notes!
+         c.lastJobAdminNotes = c.completedJobs[0].adminNotes;
      }
      return c;
   });
@@ -220,13 +230,11 @@ export default function AdminDashboard() {
               >
                 {tab}
               </button>
-              {/* Pending Badge */}
               {tab === 'Pending' && pendingCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-sm ring-2 ring-slate-50 z-10 animate-in zoom-in">
                   {pendingCount}
                 </span>
               )}
-              {/* To Finalize Badge */}
               {tab === 'Completed' && toFinalizeCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[11px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-sm ring-2 ring-slate-50 z-10 animate-in zoom-in" title={`${toFinalizeCount} jobs to finalize`}>
                   {toFinalizeCount}
@@ -260,8 +268,9 @@ export default function AdminDashboard() {
                         <div className="font-bold text-slate-800">
                           {new Date(appt.date).toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
+                        {/* AM/PM FIX APPLIED HERE */}
                         <div className="text-xs text-teal-600 font-bold mt-0.5">
-                          {appt.startTime} - {appt.endTime}
+                          {formatAMPM(appt.startTime)} - {formatAMPM(appt.endTime)}
                         </div>
                       </>
                     ) : (
@@ -390,7 +399,6 @@ export default function AdminDashboard() {
                                </div>
                              </div>
 
-                             {/* NEW: DISPLAY ADMIN NOTES IN ROSTER */}
                              {client.lastJobAdminNotes && (
                                <div className="mt-4 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Service Notes</p>
